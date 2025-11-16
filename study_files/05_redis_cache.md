@@ -158,3 +158,216 @@ Se você precisa de SQL → H2 (em dev) e PostgreSQL/MySQL (em prod).
 Se você precisa de velocidade e pode perder o dado → Redis.
 ```
 
+# Redis CLI Cheat Sheet
+
+**Com os comandos mais usados + como usar `jq` pra formatar JSON**
+
+## 1. Conexão básica
+
+```sh
+redis-cli
+```
+
+Conectar em outra porta/host:
+
+```sh
+redis-cli -h localhost -p 6379
+```
+
+---
+
+## 2. Explorar chaves
+
+Listar chaves por padrão:
+
+```sh
+KEYS pattern*
+```
+
+Exemplo:
+
+```sh
+KEYS chat*
+```
+
+Contar chaves sem listá-las:
+
+```sh
+DBSIZE
+```
+
+---
+
+## 3. Ler valores
+
+```sh
+GET chave
+```
+
+Exemplo:
+
+```sh
+GET "chat-memory:default"
+```
+
+---
+
+## 4. Escrever valores
+
+```sh
+SET chave valor
+```
+
+Exemplo:
+
+```sh
+SET user:1 "Milena"
+```
+
+---
+
+## 5. Deletar
+
+```sh
+DEL chave
+```
+
+Apagar várias:
+
+```sh
+DEL chave1 chave2 chave3
+```
+
+---
+
+## 6. Expiração (TTL)
+
+Definir expiração:
+
+```sh
+EXPIRE chave segundos
+```
+
+Verificar tempo restante:
+
+```sh
+TTL chave
+```
+
+---
+
+## 7. Trabalhando com listas
+
+Adicionar no fim:
+
+```sh
+RPUSH lista valor
+```
+
+Ler lista:
+
+```sh
+LRANGE lista 0 -1
+```
+
+---
+
+## 8. Trabalhando com hashes (muito usado em apps reais)
+
+Setar campos:
+
+```sh
+HSET usuario:1 nome "Milena" idade "18"
+```
+
+Obter campo:
+
+```sh
+HGET usuario:1 nome
+```
+
+Obter tudo:
+
+```sh
+HGETALL usuario:1
+```
+
+---
+
+## 9. Ver dados formatados com `jq`
+
+Redis não formata JSON. Se você armazenou JSON como valor string, use:
+
+### MacOS / Linux:
+
+```sh
+redis-cli GET "minha-chave" | jq
+```
+
+### Windows PowerShell:
+
+```sh
+redis-cli GET "minha-chave" | jq .
+```
+
+### Quando funciona?
+
+– Só funciona se **o valor salvo for JSON válido**.
+– Exemplos típicos: objetos serializados da sua memória do LangChain4j.
+
+Exemplo real:
+
+```sh
+redis-cli GET "chat-memory:default" | jq
+```
+
+---
+
+## 10. Inspecionar metadados
+
+Tipo da chave:
+
+```sh
+TYPE chave
+```
+
+Tempo restante:
+
+```sh
+TTL chave
+```
+
+Persistir (remover expiração):
+
+```sh
+PERSIST chave
+```
+
+---
+
+## 11. Apagar tudo
+
+Banco atual:
+
+```sh
+FLUSHDB
+```
+
+Todos os bancos:
+
+```sh
+FLUSHALL
+```
+
+---
+
+## 12. Monitorar tudo em tempo real
+
+```sh
+MONITOR
+```
+
+Muito útil pra ver o que sua aplicação está fazendo no Redis.
+
+---
+
